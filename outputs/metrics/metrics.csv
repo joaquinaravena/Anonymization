@@ -1,19 +1,4 @@
-anonymized_text,mail_id,num_entities,output_file,processing_time_sec,success
-"From: Chase Security Team <<EMAIL_ADDRESS>>
-To: <EMAIL_ADDRESS>
-Subject: URGENT: Unusual Sign-in Activity Detected
-
-Dear <PERSON>,
-
-Our system detected a suspicious login attempt to your Chase Online account from an unrecognized device in <LOCATION>, <LOCATION>.
-
-Account ending in: <ACCOUNT_NUMBER><DATE_TIME>: <DATE_TIME>, <DATE_TIME>
-Time: <DATE_TIME>
-
-If this was not you, please click the link below:
-<URL>
-
-If you have questions, call <PHONE_NUMBER> or visit <ADDRESS>, <LOCATION>, NY 10017.
-
-Thank you,
-Chase Bank Global Security Operations",mail_001,17,/home/aravena261/Documents/Anonymization/outputs/anonymized/mail_001.txt,0.2228,True
+mail_id,success,language,anonymization_mode,analyzer_hits,redacted_spans,identity_empty,processing_time_sec,output_file,error
+mail_001,True,en,user_only,15,3,False,0.3235,outputs/anonymized/mail_001.txt,
+mail_001_fr,True,fr,user_only,16,3,False,0.027,outputs/anonymized/mail_001_fr.txt,
+mail_002,True,en,user_only,26,4,False,0.1207,outputs/anonymized/mail_002.txt,

@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 
-from config import RAW_DIR, METRICS_DIR
+from config import METRICS_CSV_FIELDS, RAW_DIR, METRICS_DIR
 from logger_setup import setup_logger
 from pipeline import PIIPipeline
 
@@ -11,12 +11,13 @@ def load_mail_files():
 
 def save_metrics(records):
     metrics_file = METRICS_DIR / "metrics.csv"
-    fieldnames = sorted({key for record in records for key in record.keys()})
 
     with metrics_file.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=METRICS_CSV_FIELDS, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(records)
+        for rec in records:
+            row = {k: rec.get(k, "") for k in METRICS_CSV_FIELDS}
+            writer.writerow(row)
 
     return metrics_file
 

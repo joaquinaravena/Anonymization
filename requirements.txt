@@ -1,3 +1,7 @@
 presidio-analyzer
 presidio-anonymizer
 spacy
+spacy-transformers
+langdetect
+rapidfuzz
+# Then: uv run python -m spacy download en_core_web_trf fr_core_news_md
