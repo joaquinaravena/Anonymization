@@ -1,0 +1,15 @@
+From: IT Help Desk <it-support@corp-example.com>
+To: m.garcia82@gmail.com
+Subject: Action Required: Password Expiring in 12 Hours
+
+Hi Maria,
+
+Your corporate password will expire today at 11:59 PM.
+
+To avoid account lockout, reset your password using the secure employee portal:
+https://intranet.corp-example.com/security/reset-password
+
+If you did not request this reminder, contact IT Security at 1-877-555-0108.
+
+Regards,
+IT Operations

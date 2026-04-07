@@ -1,0 +1,17 @@
+From: Event Organizing Committee <events@devsummit.org>
+To: <EMAIL_ADDRESS>
+Subject: Your DevSummit 2026 badge and agenda
+
+Hi <PERSON>,
+
+Thanks for registering for DevSummit 2026.
+Your attendee badge ID is DS26-99314.
+
+Access your personalized agenda:
+https://devsummit.org/attendee/agenda
+
+Venue: 88 Harbor Blvd, Boston, MA 02110
+Date: May 21, 2026
+
+See you there,
+DevSummit Team

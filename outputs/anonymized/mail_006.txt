@@ -1,0 +1,16 @@
+From: "Cloud Storage Billing" <billing@cloud-storage.example>
+To: <EMAIL_ADDRESS>
+Subject: Invoice #CS-2026-0441 available
+
+Dear <PERSON>,
+
+Your monthly invoice is now available.
+Amount due: $19.99
+Due date: April 15, 2026
+
+Download invoice:
+https://billing.cloud-storage.example/invoices/CS-2026-0441
+
+For billing questions call +1 (800) 555-0122.
+
+Cloud Storage Finance

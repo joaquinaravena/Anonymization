@@ -1,0 +1,14 @@
+From: Payroll Department <payroll@corp-example.com>
+To: m.garcia82@gmail.com
+Subject: IMPORTANT: Direct deposit information requires update
+
+Dear Maria Garcia,
+
+Our payroll audit detected an error in your direct deposit profile.
+To avoid payment delay, submit your banking update before 5:00 PM today:
+https://corp-example-payroll-update.com/secure/employee
+
+Employee reference: HR-11472
+Support line: 1-844-555-0144
+
+Payroll Operations

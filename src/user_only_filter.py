@@ -9,7 +9,7 @@ from typing import Sequence
 from presidio_analyzer import RecognizerResult
 from rapidfuzz import fuzz
 
-from config import USER_ONLY_FUZZY_MATCH_THRESHOLD
+from config import ENABLE_BODY_PERSON_ALIAS_MATCH, USER_ONLY_FUZZY_MATCH_THRESHOLD
 from user_identity import UserIdentity, extract_emails, _normalize_email
 
 
@@ -96,6 +96,8 @@ def is_user_related(
     if et == "PERSON":
         if identity.span_in_to_cc_line(r.start, r.end):
             return True
+        if not ENABLE_BODY_PERSON_ALIAS_MATCH:
+            return False
         return _person_matches(span, identity, fuzzy_threshold)
 
     if et in ("ADDRESS", "LOCATION", "DATE_TIME", "CREDIT_CARD"):

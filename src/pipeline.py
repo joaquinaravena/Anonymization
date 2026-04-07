@@ -5,13 +5,12 @@ from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 
 from config import (
-    ANONYMIZE_ALL_IF_NO_IDENTITY,
     BASE_DIR,
     ENTITIES,
     ANONYMIZED_DIR,
     LANGUAGE_TO_SPACY_MODEL,
 )
-from language import detect_mail_language
+from language import resolve_analyzer_language
 from recognizers import build_custom_recognizers
 from user_identity import build_user_identity
 from user_only_filter import filter_user_only_results
@@ -52,7 +51,7 @@ class PIIPipeline:
 
     def analyze(self, text, language=None):
         if language is None:
-            language = detect_mail_language(text)
+            language, _detected_language = resolve_analyzer_language(text)
         return self.analyzer.analyze(
             text=text,
             entities=ENTITIES,
@@ -66,13 +65,11 @@ class PIIPipeline:
         )
 
     def _results_for_anonymization(self, text, results):
-        """Keep only recipient-related spans; optionally use all hits if identity is empty."""
+        """Keep only recipient-related spans."""
         all_hits = len(results)
         identity = build_user_identity(text)
 
         if identity.is_empty():
-            if ANONYMIZE_ALL_IF_NO_IDENTITY:
-                return results, all_hits, all_hits, identity
             return [], 0, all_hits, identity
 
         filtered = filter_user_only_results(text, results, identity)
@@ -81,9 +78,10 @@ class PIIPipeline:
     def process_mail(self, mail_id, text):
         started = time.time()
         language = None
+        detected_language = None
 
         try:
-            language = detect_mail_language(text)
+            language, detected_language = resolve_analyzer_language(text)
             results = self.analyze(text, language=language)
             to_anonymize, kept_hits, all_hits, identity = self._results_for_anonymization(
                 text, results
@@ -100,10 +98,13 @@ class PIIPipeline:
             record = {
                 "mail_id": mail_id,
                 "success": True,
+                "language_detected": detected_language,
                 "language": language,
                 "analyzer_hits": all_hits,
                 "redacted_spans": kept_hits,
+                "redaction_ratio": round((kept_hits / all_hits), 4) if all_hits else 0.0,
                 "identity_empty": identity.is_empty(),
+                "identity_source": identity.source(),
                 "processing_time_sec": round(duration, 4),
                 "output_file": self._output_path_for_metrics(output_path),
             }
@@ -116,7 +117,10 @@ class PIIPipeline:
             record = {
                 "mail_id": mail_id,
                 "success": False,
+                "language_detected": detected_language,
                 "language": language,
+                "redaction_ratio": "",
+                "identity_source": "",
                 "processing_time_sec": round(duration, 4),
                 "error": str(e),
             }

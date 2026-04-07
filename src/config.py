@@ -7,9 +7,15 @@ from pathlib import Path
 LANGUAGE_TO_SPACY_MODEL = {
     "en": "en_core_web_trf",
     "fr": "fr_core_news_md",
+    # Multilingual fallback for all non-primary languages.
+    "xx": "xx_ent_wiki_sm",
 }
 
-DEFAULT_LANGUAGE = "en"
+# Keep dedicated models for high-volume languages.
+PRIMARY_ANALYZER_LANGUAGES = frozenset({"en", "fr"})
+
+# For short/failed detection, route to multilingual fallback to avoid English bias.
+SHORT_TEXT_ANALYZER_LANGUAGE = "xx"
 
 # Skip langdetect below this length (empty/small snippets are unreliable).
 MIN_CHARS_FOR_DETECTION = 40
@@ -38,21 +44,23 @@ ENTITIES = [
 # rapidfuzz ratio 0–100 for PERSON vs known name aliases.
 USER_ONLY_FUZZY_MATCH_THRESHOLD = 85
 USER_ONLY_MIN_NAME_TOKEN_LEN = 2
+# Optional language-neutral body matching of PERSON entities against header-derived aliases.
+ENABLE_BODY_PERSON_ALIAS_MATCH = True
 
 # Header names (normalized) whose lines may contain recipient-only redaction.
 USER_ONLY_REDACT_HEADERS = ("to", "cc")
-
-# If no recipient identity can be built, anonymize all Presidio hits (safer than storing raw text).
-ANONYMIZE_ALL_IF_NO_IDENTITY = True
 
 # CSV column order for metrics (one row per mail). Excludes full anonymized body — see output_file.
 METRICS_CSV_FIELDS = [
     "mail_id",
     "success",
+    "language_detected",
     "language",
     "analyzer_hits",
     "redacted_spans",
+    "redaction_ratio",
     "identity_empty",
+    "identity_source",
     "processing_time_sec",
     "output_file",
     "error",

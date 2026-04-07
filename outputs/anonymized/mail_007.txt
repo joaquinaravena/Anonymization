@@ -1,0 +1,16 @@
+From: Security Verification Center <alerts@apple-id-security-check.com>
+To: <EMAIL_ADDRESS>
+Subject: Urgent: Apple ID temporarily restricted
+
+Dear Customer,
+
+We detected unusual activity and temporarily restricted access to your Apple ID.
+To prevent permanent suspension, verify your account immediately:
+http://apple-id-security-check.com/verify/login
+
+Case number: AID-883104
+Last login location: Warsaw, Poland
+
+Failure to verify within 2 hours may result in data deletion.
+
+Apple Account Safety Team

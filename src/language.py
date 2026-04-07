@@ -2,33 +2,32 @@ from langdetect import DetectorFactory, detect
 from langdetect.lang_detect_exception import LangDetectException
 
 from config import (
-    DEFAULT_LANGUAGE,
-    LANGUAGE_TO_SPACY_MODEL,
+    PRIMARY_ANALYZER_LANGUAGES,
+    SHORT_TEXT_ANALYZER_LANGUAGE,
     MIN_CHARS_FOR_DETECTION,
 )
 
 DetectorFactory.seed = 0
 
-_SUPPORTED = frozenset(LANGUAGE_TO_SPACY_MODEL.keys())
+def _normalize_detected_language(raw: str) -> str:
+    return raw.split("-", 1)[0].lower()
 
 
-def _resolve_to_supported(raw: str) -> str | None:
-    if raw in _SUPPORTED:
-        return raw
-    primary = raw.split("-", 1)[0]
-    if primary in _SUPPORTED:
-        return primary
-    return None
-
-
-def detect_mail_language(text: str) -> str:
+def resolve_analyzer_language(text: str) -> tuple[str, str]:
+    """
+    Returns (analyzer_language, detected_language).
+    analyzer_language is one of: en, fr, xx.
+    """
     if not text or len(text.strip()) < MIN_CHARS_FOR_DETECTION:
-        return DEFAULT_LANGUAGE
+        return SHORT_TEXT_ANALYZER_LANGUAGE, "short_text"
     try:
         raw = detect(text)
     except LangDetectException:
-        return DEFAULT_LANGUAGE
+        return SHORT_TEXT_ANALYZER_LANGUAGE, "detect_error"
     except Exception:
-        return DEFAULT_LANGUAGE
-    resolved = _resolve_to_supported(raw)
-    return resolved if resolved is not None else DEFAULT_LANGUAGE
+        return SHORT_TEXT_ANALYZER_LANGUAGE, "detect_error"
+
+    normalized = _normalize_detected_language(raw)
+    if normalized in PRIMARY_ANALYZER_LANGUAGES:
+        return normalized, normalized
+    return "xx", normalized

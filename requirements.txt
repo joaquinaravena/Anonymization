@@ -4,4 +4,4 @@ spacy
 spacy-transformers
 langdetect
 rapidfuzz
-# Then: uv run python -m spacy download en_core_web_trf fr_core_news_md
+# Then: uv run python -m spacy download en_core_web_trf fr_core_news_md xx_ent_wiki_sm

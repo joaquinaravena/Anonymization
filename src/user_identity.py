@@ -1,8 +1,8 @@
 """
-Build recipient-oriented identity from the message only (To/Cc headers and greeting lines).
+Build recipient-oriented identity from structured email headers.
 
-Used to scope anonymization to user-related spans. Account/phone tails are not inferred
-from the body (phishing lure text is not treated as verified PII).
+Identity is derived from parsed recipient headers (To/Cc/Bcc),
+without relying on language-specific greeting words in the body.
 """
 
 from __future__ import annotations
@@ -10,6 +10,9 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from email import policy
+from email.parser import BytesParser
+from email.utils import getaddresses
 
 from config import USER_ONLY_MIN_NAME_TOKEN_LEN
 
@@ -17,24 +20,6 @@ _EMAIL_RE = re.compile(
     r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}",
     re.IGNORECASE,
 )
-
-# To / Cc (EN) and À (FR) etc. — line-based header keys we treat as recipient-bearing.
-_HEADER_KEY_RE = re.compile(
-    r"^(?P<key>to|cc|bcc|à|pour)\s*:\s*(?P<value>.*)$",
-    re.IGNORECASE,
-)
-
-# "Name <email@x.com>" or quoted display names
-_DISPLAY_EMAIL_RE = re.compile(
-    r"^(?P<name>[^<]+?)?\s*<(?P<email>[^>]+)>\s*$",
-    re.IGNORECASE,
-)
-
-_GREETING_RES = (
-    re.compile(r"^(?:Dear|Hi|Hello)\s+([^\n,]+?)(?:,|\s*$)", re.IGNORECASE | re.MULTILINE),
-    re.compile(r"^(?:Chère|Cher)\s+([^\n,]+?)(?:,|\s*$)", re.IGNORECASE | re.MULTILINE),
-)
-
 
 def _normalize_email(s: str) -> str:
     return s.strip().lower()
@@ -79,9 +64,23 @@ class UserIdentity:
     name_aliases: frozenset[str]
     to_cc_line_ranges: tuple[tuple[int, int], ...]
     body_start: int
+    first_line_name_used: bool
 
     def is_empty(self) -> bool:
         return not self.emails and not self.name_aliases
+
+    def source(self) -> str:
+        if self.first_line_name_used and self.emails:
+            return "headers_plus_first_line"
+        if self.first_line_name_used and not self.emails:
+            return "first_line_only"
+        if self.emails and self.name_aliases:
+            return "headers_email_and_name"
+        if self.emails:
+            return "headers_email_only"
+        if self.name_aliases:
+            return "headers_name_only"
+        return "none"
 
     def span_in_to_cc_line(self, start: int, end: int) -> bool:
         for a, b in self.to_cc_line_ranges:
@@ -91,15 +90,14 @@ class UserIdentity:
 
 
 def _find_header_body_split(text: str) -> tuple[str, int]:
-    idx = text.find("\n\n")
-    if idx == -1:
-        return text, len(text)
-    return text[:idx], idx + 2
+    for sep in ("\r\n\r\n", "\n\n", "\r\r"):
+        idx = text.find(sep)
+        if idx != -1:
+            return text[:idx], idx + len(sep)
+    return text, len(text)
 
 
-_TO_CC_LINE_IN_HEAD = re.compile(
-    r"(?im)^(?:to|cc|bcc|à|pour)\s*:\s*.*$",
-)
+_TO_CC_LINE_IN_HEAD = re.compile(r"(?im)^(?:to|cc|bcc)\s*:\s*.*$")
 
 
 def _collect_to_cc_ranges_in_header_prefix(text: str, body_start: int) -> tuple[tuple[int, int], ...]:
@@ -107,32 +105,70 @@ def _collect_to_cc_ranges_in_header_prefix(text: str, body_start: int) -> tuple[
     return tuple((m.start(), m.end()) for m in _TO_CC_LINE_IN_HEAD.finditer(head))
 
 
-def _extract_emails_and_names_from_header_value(value: str) -> tuple[set[str], set[str]]:
+def _parse_recipients_from_email_headers(text: str) -> tuple[set[str], set[str]]:
+    """
+    Parse RFC-compliant headers robustly (CRLF/folded lines/encoded names).
+    """
     emails: set[str] = set()
     names: set[str] = set()
-    value = value.strip()
-    dm = _DISPLAY_EMAIL_RE.match(value)
-    if dm:
-        em = dm.group("email")
-        nm = dm.group("name")
-        if em:
-            emails.add(_normalize_email(em))
-        if nm:
-            names.add(nm.strip().strip('"').strip("'"))
+    try:
+        msg = BytesParser(policy=policy.default).parsebytes(text.encode("utf-8", errors="ignore"))
+    except Exception:
         return emails, names
-    for em in _EMAIL_RE.findall(value):
-        emails.add(_normalize_email(em))
+
+    raw_values: list[str] = []
+    for key in ("To", "Cc", "Bcc"):
+        raw_values.extend(msg.get_all(key, []))
+
+    for name, addr in getaddresses(raw_values):
+        if addr:
+            emails.add(_normalize_email(addr))
+        if name and name.strip():
+            names.add(name.strip())
     return emails, names
 
 
-def _greeting_names(body: str) -> list[str]:
-    found: list[str] = []
-    for rx in _GREETING_RES:
-        for m in rx.finditer(body):
-            g = m.group(1).strip()
-            if g:
-                found.append(g)
-    return found
+def _extract_first_line_name_candidate(text: str, body_start: int) -> str | None:
+    """
+    Language-neutral heuristic: inspect first non-empty body line and extract a name-like span.
+    Intended to recover recipient names when headers contain only the email address.
+    """
+    body = text[body_start:]
+    if not body:
+        return None
+
+    first_line = ""
+    for raw_line in body.splitlines():
+        line = raw_line.strip()
+        if line:
+            first_line = line
+            break
+    if not first_line:
+        return None
+
+    # Common non-name shapes in first lines.
+    if "@" in first_line or "http://" in first_line.lower() or "https://" in first_line.lower():
+        return None
+    if ":" in first_line:
+        return None
+    if re.search(r"\d", first_line):
+        return None
+
+    candidate = first_line.split(",", 1)[0].strip().strip("-")
+    tokens = re.findall(r"[^\W\d_]+", candidate, flags=re.UNICODE)
+    if len(tokens) < 2:
+        return None
+
+    # Heuristic: if line has 3+ tokens, first token is often a salutation/title.
+    if len(tokens) >= 3:
+        tokens = tokens[1:]
+    if len(tokens) < 2:
+        return None
+
+    normalized_tokens = [t for t in tokens if len(t) >= 2]
+    if len(normalized_tokens) < 2:
+        return None
+    return " ".join(normalized_tokens[:4])
 
 
 def build_user_identity(
@@ -140,25 +176,20 @@ def build_user_identity(
     *,
     min_token_len: int = USER_ONLY_MIN_NAME_TOKEN_LEN,
 ) -> UserIdentity:
-    header_block, body_start = _find_header_body_split(text)
-    body = text[body_start:]
+    _header_block, body_start = _find_header_body_split(text)
 
     emails: set[str] = set()
     names: set[str] = set()
 
-    for line in header_block.splitlines():
-        stripped = line.strip()
-        m = _HEADER_KEY_RE.match(stripped)
-        if m:
-            key = m.group("key").lower()
-            if key in ("to", "cc", "bcc", "à", "pour"):
-                value = m.group("value")
-                ems, nms = _extract_emails_and_names_from_header_value(value)
-                emails |= ems
-                names |= nms
+    header_emails, header_names = _parse_recipients_from_email_headers(text)
+    emails |= header_emails
+    names |= header_names
 
-    for g in _greeting_names(body):
-        names.add(g)
+    first_line_name_used = False
+    first_line_candidate = _extract_first_line_name_candidate(text, body_start)
+    if first_line_candidate:
+        names.add(first_line_candidate)
+        first_line_name_used = True
 
     name_aliases = _merge_alias_sets(*names, min_len=min_token_len)
 
@@ -175,4 +206,5 @@ def build_user_identity(
         name_aliases=name_aliases,
         to_cc_line_ranges=to_cc_ranges,
         body_start=body_start,
+        first_line_name_used=first_line_name_used,
     )

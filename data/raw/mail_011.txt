@@ -1,0 +1,43 @@
+Return-Path: <m.garcia82@gmail.com>
+Delivered-To: alex.chen.personal@mailhub.com
+Received: by 2002:a05:620a:33f2:b0:7aa:1122:55aa with SMTP id q18csp998877qkj;
+        Tue, 8 Apr 2026 09:12:44 -0700 (PDT)
+From: "Maria Garcia" <m.garcia82@gmail.com>
+To: "Alex Chen" <alex.chen.personal@mailhub.com>
+Cc: "Jordan Lee" <jordan.lee@northwind.io>
+Subject: Re: Friday dinner + project updates
+Date: Tue, 8 Apr 2026 19:12:36 +0200
+Message-ID: <CAK8f2f9T9M8aR-01123@m.garcia82.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+Hi Alex,
+
+Friday works for me. 7:30 PM is perfect.
+I can meet you at Harbor Grill, 420 Market St, San Francisco.
+
+Also, quick update on the office rollout:
+- We migrated 18 users to the new dashboard.
+- The invoice review call is still planned for April 12.
+- Please send the latest draft to Jordan before noon.
+
+You can reach me at 415-555-0191 if timing changes.
+
+Thanks,
+Maria
+
+-----Original Message-----
+From: Alex Chen <alex.chen.personal@mailhub.com>
+Sent: Tuesday, April 8, 2026 9:01 AM
+To: Maria Garcia <m.garcia82@gmail.com>
+Subject: Friday dinner + project updates
+
+Hey Maria,
+
+Are you available this Friday around 7:30 PM?
+If yes, I will reserve a table near downtown.
+
+Also, can you share the latest status for the migration?
+
+- Alex

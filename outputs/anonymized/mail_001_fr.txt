@@ -1,6 +1,6 @@
-De : Équipe de sécurité Chase no-reply@chase-security-verify.com
-À : <EMAIL_ADDRESS>
-Objet : URGENCE : Activité de connexion inhabituelle détectée
+From: Équipe de sécurité Chase no-reply@chase-security-verify.com
+To: <EMAIL_ADDRESS>
+Subject: URGENCE : Activité de connexion inhabituelle détectée
 
 <PERSON>,
 
