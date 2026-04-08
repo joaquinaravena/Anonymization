@@ -1,8 +1,6 @@
 import csv
-from pathlib import Path
 
 from config import METRICS_CSV_FIELDS, RAW_DIR, METRICS_DIR
-from logger_setup import setup_logger
 from pipeline import PIIPipeline
 
 def load_mail_files():
@@ -22,15 +20,13 @@ def save_metrics(records):
     return metrics_file
 
 def main():
-    logger = setup_logger(log_file=Path("logs") / "app.log")
-    pipeline = PIIPipeline(logger)
+    pipeline = PIIPipeline()
 
     records = []
     for mail_id, text in load_mail_files():
         records.append(pipeline.process_mail(mail_id, text))
 
     metrics_path = save_metrics(records)
-    logger.info(f"Metrics saved to {metrics_path}")
 
 if __name__ == "__main__":
     main()

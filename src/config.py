@@ -27,7 +27,6 @@ SAMPLES_DIR = DATA_DIR / "samples"
 OUTPUTS_DIR = BASE_DIR / "outputs"
 ANONYMIZED_DIR = OUTPUTS_DIR / "anonymized"
 METRICS_DIR = OUTPUTS_DIR / "metrics"
-LOGS_DIR = BASE_DIR / "logs"
 
 ENTITIES = [
     "PHONE_NUMBER",
@@ -66,5 +65,5 @@ METRICS_CSV_FIELDS = [
     "error",
 ]
 
-for path in [RAW_DIR, SAMPLES_DIR, ANONYMIZED_DIR, METRICS_DIR, LOGS_DIR]:
+for path in [RAW_DIR, SAMPLES_DIR, ANONYMIZED_DIR, METRICS_DIR]:
     path.mkdir(parents=True, exist_ok=True)

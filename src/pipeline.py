@@ -35,8 +35,7 @@ def _build_analyzer_engine():
 
 
 class PIIPipeline:
-    def __init__(self, logger):
-        self.logger = logger
+    def __init__(self):
         self.analyzer = _build_analyzer_engine()
         for recognizer in build_custom_recognizers():
             self.analyzer.registry.add_recognizer(recognizer)
@@ -108,8 +107,6 @@ class PIIPipeline:
                 "processing_time_sec": round(duration, 4),
                 "output_file": self._output_path_for_metrics(output_path),
             }
-
-            self.logger.info(json.dumps(record, ensure_ascii=False))
             return record
 
         except Exception as e:
@@ -124,5 +121,4 @@ class PIIPipeline:
                 "processing_time_sec": round(duration, 4),
                 "error": str(e),
             }
-            self.logger.error(json.dumps(record, ensure_ascii=False))
             return record
